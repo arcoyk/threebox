@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <style>
+    body {
+      background: #eeeeee;
+    }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/three.js"></script>
+    <script src="js/controls/TrackballControls.js"></script>
+    <script src="js/renderers/CSS3DRenderer.js"></script>
+    <script>
+      window.onload = function() {
+        var camera, scene, renderer, elem1, elem2, obj1, obj2;
+        var controls;
+
+        function init() {
+          // camera
+          camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+          camera.position.z = 2000;
+          // scene
+          scene = new THREE.Scene();
+          scene.background = new THREE.Color( 0x000000 );
+          // renderer
+          renderer = new THREE.CSS3DRenderer();
+          // renderer = new THREE.WebGLRenderer({antialias:true});
+          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.domElement.style.position = 'absolute';
+          document.body.appendChild( renderer.domElement );
+          // controls
+          controls = new THREE.TrackballControls( camera, renderer.domElement );
+          controls.addEventListener( 'change', renderer );
+          // object
+          elem1 = document.createElement( 'div' );
+          elem1.innerText = "Don't like you";
+          obj1 = new THREE.CSS3DObject( elem1 );
+          obj1.position.x = 100;
+          obj1.position.y = 100;
+          obj1.position.z = 100;
+          scene.add(obj1);
+
+          elem2 = document.createElement( 'div' );
+          elem2.innerText = "Like you";
+          obj2 = new THREE.CSS3DObject( elem2 );
+          obj2.position.x = 200;
+          obj2.position.y = 100;
+          obj2.position.z = 100;
+          scene.add(obj2);
+        }
+
+        function animate() {
+          // Quaternion works for billboard efffect
+          // Math is hard. So is life. Get over it!!
+          obj2.quaternion.copy( camera.quaternion );
+          requestAnimationFrame( animate );
+          renderer.render( scene, camera );
+          try {
+            controls.update();
+          } catch ( e ) {
+            // solve error when you have time
+            // b[c].call is not a function : TrackballControls.js ERROR
+          }
+        }
+
+        init();
+        animate();
+      }
+    </script>
+  </body>
+</html>
+
