@@ -1,12 +1,14 @@
 <html>
 </html>
-
 <script src="js/three.js"></script>
 <script src="js/controls/TrackballControls.js"></script>
 <script>
   var WIDTH = 1000;
   var HEIGHT = 500;
+  var MAX_POINTS = 300;
   var camera, scene, renderer, controls;
+  var traj = {line: {}, a: {}, v: {}};
+
   function init() {
     camera = new THREE.PerspectiveCamera( 100, WIDTH / HEIGHT, 1, 1000);
     camera.position.z = 100;
@@ -19,19 +21,54 @@
     controls = new THREE.TrackballControls( camera, renderer.domElement );
     controls.addEventListener( 'change', renderer );
     init_line();
+    init_params();
+  }
+
+  function init_position(g) {
+    var arr = new Float32Array(MAX_POINTS * 3);
+    var buf = new THREE.BufferAttribute(arr, 3);
+    g.addAttribute('position', buf);
+  }
+
+  function move_line() {
+    var posi = traj.line.geometry.attributes.position;
+    var arr = posi.array;
+    var temp = [0, 0, 0];
+    var next = [0, 0, 0];
+    // move head
+    for (var k = 0; k < 3; k++) {
+      traj.a[k] = (Math.random() - 0.5) / 10;
+      traj.v[k] += traj.a[k];
+      traj.v[k] /= 2;
+      arr[k] += traj.v[k];
+      next[k] = arr[k];
+    }
+    // move rest
+    for (var i = 0; i < arr.length; i += 3) {
+      for (var k = 0; k < 3; k++) {
+        temp[k] = arr[i + k]
+        arr[i + k] = next[k];
+        next[k] = temp[k];
+      }
+    }
+    posi.needsUpdate = true;
+  }
+  
+  function init_params() {
+    traj.a = [0, 0, 0];
+    traj.v = [0, 0, 0];
   }
 
   function init_line() {
-    var m = new THREE.PointsMaterial({ size: 10, color: 0xaa44ff });
-    var g = new THREE.Geometry();
-    g.vertices.push(
-      new THREE.Vector3(10, 10, 10)
-    );
-    var p = new THREE.Points(g, m);
-    scene.add( p );
+    var m = new THREE.LineBasicMaterial({ color: 0xaa00ff, linewidth: 200 });
+    var g = new THREE.BufferGeometry();
+    init_position(g);
+    traj.line = new THREE.Line(g, m);
+    scene.add( traj.line );
   }
 
   function animate() {
+    move_line();
     requestAnimationFrame( animate );
     renderer.render( scene, camera );
     try {
