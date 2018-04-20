@@ -1,50 +1,59 @@
 <html>
+  <body>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/three.js"></script>
+    <script src="js/controls/TrackballControls.js"></script>
+    <script src="js/renderers/CSS3DRenderer.js"></script>
+    <script>
+      window.onload = function() {
+        var camera, scene, renderer, g, m, line;
+        var controls;
+
+        function init() {
+          // camera
+          camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+          camera.position.z = 2000;
+          // scene
+          scene = new THREE.Scene();
+          scene.background = new THREE.Color( 0x000000 );
+          // renderer
+          // renderer = new THREE.CSS3DRenderer();
+          renderer = new THREE.WebGLRenderer();
+          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.domElement.style.position = 'absolute';
+          document.body.appendChild( renderer.domElement );
+          // controls
+          controls = new THREE.TrackballControls( camera, renderer.domElement );
+          controls.addEventListener( 'change', renderer );
+          // line
+          m = new THREE.LineBasicMaterial({ color: 0x0000ff });
+          g = new THREE.Geometry();
+          g.vertices.push(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(100, 0, 0),
+            new THREE.Vector3(100, 100, 0),
+            new THREE.Vector3(0, 100, 0)
+            );
+          line = new THREE.Line(g, m);
+          // You can even laycast!
+          scene.add(line);
+        }
+
+        function animate() {
+          requestAnimationFrame( animate );
+          renderer.render( scene, camera );
+          try {
+            controls.update();
+          } catch ( e ) {
+            // solve error when you have time
+            // b[c].call is not a function : TrackballControls.js ERROR
+          }
+        }
+
+        init();
+        animate();
+      }
+    </script>
+  </body>
 </html>
 
-<script src="js/three.js"></script>
-<script src="js/controls/TrackballControls.js"></script>
-<script>
-  var WIDTH = 1000;
-  var HEIGHT = 500;
-  var camera, scene, renderer, controls;
-  function init() {
-    camera = new THREE.PerspectiveCamera( 100, WIDTH / HEIGHT, 1, 1000);
-    camera.position.z = 100;
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0xffffaa );
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(WIDTH, HEIGHT);
-    renderer.domElement.style.position = 'absolute';
-    document.body.appendChild( renderer.domElement );
-    controls = new THREE.TrackballControls( camera, renderer.domElement );
-    controls.addEventListener( 'change', renderer );
-    init_line();
-  }
-
-  function init_line() {
-    var m = new THREE.PointsMaterial({ size: 10, color: 0xaa44ff });
-    var g = new THREE.Geometry();
-    g.vertices.push(
-      new THREE.Vector3(10, 10, 10)
-    );
-    var p = new THREE.Points(g, m);
-    scene.add( p );
-  }
-
-  function animate() {
-    requestAnimationFrame( animate );
-    renderer.render( scene, camera );
-    try {
-      controls.update();
-    } catch ( e ) {
-    }
-  }
-
-  function run() {
-    init();
-    animate();
-  }
-</script>
-<script>
-  window.onload = run;
-</script>
