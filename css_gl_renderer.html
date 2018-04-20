@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <style>
+    body {
+      background: #eeeeee;
+    }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/three.js"></script>
+    <script src="js/controls/TrackballControls.js"></script>
+    <script src="js/renderers/CSS3DRenderer.js"></script>
+    <script>
+      window.onload = function() {
+        var camera, scene, renderer, elem, obj;
+        var controls;
+        // Apr 14. http://learningthreejs.com/blog/2013/04/30/closing-the-gap-between-html-and-webgl/
+
+        function init() {
+          // camera
+          camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+          camera.position.z = 2000;
+          // scene
+          scene = new THREE.Scene();
+          scene.background = new THREE.Color( 0x000000 );
+          // renderer
+          renderer = new THREE.CSS3DRenderer();
+          // renderer = new THREE.WebGLRenderer({antialias:true});
+          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.domElement.style.position = 'absolute';
+          document.body.appendChild( renderer.domElement );
+          // controls
+          controls = new THREE.TrackballControls( camera, renderer.domElement );
+          controls.addEventListener( 'change', renderer );
+          // object
+          elem = document.createElement( 'div' );
+          elem.innerText = "hoge";
+          obj = new THREE.CSS3DObject( elem );
+          obj.position.x = 0;
+          obj.position.y = 0;
+          obj.position.z = 0;
+          scene.add(obj);
+        }
+
+        function animate() {
+          requestAnimationFrame( animate );
+          renderer.render( scene, camera );
+          try {
+            controls.update();
+          } catch ( e ) {
+            // solve error when you have time
+            // b[c].call is not a function : TrackballControls.js ERROR
+          }
+        }
+
+        init();
+        animate();
+      }
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,94 @@
+<html>
+  <body>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/three.js"></script>
+    <script src="js/controls/TrackballControls.js"></script>
+    <script src="js/renderers/CSS3DRenderer.js"></script>
+    <script>
+      var camera, scene, renderer, g, m, line;
+      var controls;
+      var points;
+      var SCALE = 200;
+      window.onload = function() {
+        function init() {
+          // camera
+          camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+          camera.position.z = 1000;
+          // scene
+          scene = new THREE.Scene();
+          scene.background = new THREE.Color( 0xffffff );
+          // renderer
+          // renderer = new THREE.CSS3DRenderer();
+          renderer = new THREE.WebGLRenderer();
+          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.domElement.style.position = 'absolute';
+          document.body.appendChild( renderer.domElement );
+          // controls
+          controls = new THREE.TrackballControls( camera, renderer.domElement );
+          controls.addEventListener( 'change', renderer );
+          // points
+          init_points(10000);
+        }
+
+        function move_points() {
+          var posi = points.geometry.attributes.position;
+          var arr = posi.array;
+          for (var i = 0; i < arr.length; i++) {
+            arr[i + 0] += (Math.random() - 0.5) * 10;
+            arr[i + 1] += (Math.random() - 0.5);
+            arr[i + 2] += (Math.random() - 0.5);
+          }
+          posi.needsUpdate = true;
+        }
+
+        function init_position(g, num) {
+          var arr = new Float32Array(num * 3);
+          for (var i = 0; i < num; i++) {
+            arr[i * 0] = Math.random() * SCALE;
+            arr[i * 1] = Math.random() * SCALE;
+            arr[i * 2] = Math.random() * SCALE;
+          }
+          var buf = new THREE.BufferAttribute( arr, 3);
+          g.addAttribute('position', buf);
+        }
+
+        function init_points(num) {
+          var m = new THREE.PointsMaterial({size:10, color: 0x44aaff});
+          var g = new THREE.BufferGeometry();
+          init_position(g, num);
+          points = new THREE.Points(g, m);
+          scene.add( points )
+          // scene.points.geometry.vertices[0] = THREE.Vector3
+        }
+
+        function point(x, y, z) {
+          var m = new THREE.PointsMaterial({size:1, color: 0x44aaff});
+          var g = new THREE.Geometry();
+          g.vertices.push(
+            new THREE.Vector3(x, y, z)
+          );
+          var points = new THREE.Points(g, m);
+          scene.add( points );
+        }
+
+        function animate() {
+          move_points();
+          // three.js doesn't provide convenient wrapper of GL
+          // You can't write like processing
+          requestAnimationFrame( animate );
+          renderer.render( scene, camera );
+          try {
+            controls.update();
+          } catch ( e ) {
+            // solve error when you have time
+            // b[c].call is not a function : TrackballControls.js ERROR
+          }
+        }
+
+        init();
+        animate();
+      }
+    </script>
+  </body>
+</html>
+

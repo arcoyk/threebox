@@ -33,7 +33,7 @@
           var m = new THREE.PointsMaterial({size:100, color: 0x44aaff});
           var g = new THREE.Geometry();
           g.vertices.push(
-            new THREE.Vector3(x, y, z)
+            new THREE.Vector3(i * 100, y, z)
           );
           var points = new THREE.Points(g, m);
           scene.add( points );
