@@ -8,7 +8,7 @@
       var camera, scene, renderer, g, m, line;
       var controls;
       var points;
-      var SCALE = 200;
+      var SCALE = 1;
       window.onload = function() {
         function init() {
           // camera
@@ -16,7 +16,7 @@
           camera.position.z = 1000;
           // scene
           scene = new THREE.Scene();
-          scene.background = new THREE.Color( 0xffffff );
+          scene.background = new THREE.Color( 0x000000 );
           // renderer
           // renderer = new THREE.CSS3DRenderer();
           renderer = new THREE.WebGLRenderer();
@@ -27,16 +27,16 @@
           controls = new THREE.TrackballControls( camera, renderer.domElement );
           controls.addEventListener( 'change', renderer );
           // points
-          init_points(10000);
+          init_points(100000);
         }
 
         function move_points() {
           var posi = points.geometry.attributes.position;
           var arr = posi.array;
           for (var i = 0; i < arr.length; i++) {
-            arr[i + 0] += (Math.random() - 0.5) * 10;
-            arr[i + 1] += (Math.random() - 0.5);
-            arr[i + 2] += (Math.random() - 0.5);
+            arr[i + 0] += (Math.random() - 0.5) * 1;
+            arr[i + 1] += (Math.random() - 0.5) * 1;
+            arr[i + 2] += (Math.random() - 0.5) * 100;
           }
           posi.needsUpdate = true;
         }
