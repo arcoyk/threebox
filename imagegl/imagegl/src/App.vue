@@ -26,15 +26,109 @@
       const light = new THREE.DirectionalLight(0xffffff);
       light.position.set(0, 0, 10);
 
+
+
+
+
+
+
+
+
       // === model ===
-      const geometry = new THREE.PlaneGeometry(10, 10*.75);
-      // const geometry = new THREE.BoxGeometry (1, 1, 1);
-      // const material = new THREE.MeshStandardMaterial ({ color: 0x00ff00 });
+      function getRandomInt() {
+        var val = Math.random() * 700;
+        return Math.random() > 0.5
+          ? -val
+          : val;
+      }
+
       const loader = new THREE.TextureLoader();
-      const material = new THREE.MeshLambertMaterial({
-        map: loader.load('https://s3.amazonaws.com/duhaime/blog/tsne-webgl/assets/cat.jpg')
-        });
-      const mesh = new THREE.Mesh (geometry, material);
+      const material = new THREE.MeshBasicMaterial({
+        // map: loader.load('https://s3.amazonaws.com/duhaime/blog/tsne-webgl/data/100-img-atlas.jpg')
+        map: loader.load('../static/100-img-atlas.jpg')
+      });
+      var imageSize = {width: 128, height: 128}
+      var atlas = {width: 1280, height: 1280, cols: 10, rows: 10}
+
+      var geometry = new THREE.Geometry();
+
+
+for (var i = 0; i < 100; i++) {
+      var coords = {
+        x: getRandomInt(),
+        y: getRandomInt(),
+        z: -200
+      }
+      coords.y = Math.floor(i / 10) * 200 - 100
+      geometry.vertices.push(
+        new THREE.Vector3(
+          coords.x,
+          coords.y,
+          coords.z
+        ),
+        new THREE.Vector3(
+          coords.x+imageSize.width,
+          coords.y,
+          coords.z
+        ),
+        new THREE.Vector3(
+          coords.x+imageSize.width,
+          coords.y+imageSize.height,
+          coords.z
+        ),
+        new THREE.Vector3(
+          coords.x,
+          coords.y+imageSize.height,
+          coords.z
+        )
+      );
+
+      var faceOne = new THREE.Face3(
+        geometry.vertices.length-4,
+        geometry.vertices.length-3,
+        geometry.vertices.length-2
+      )
+
+      var faceTwo = new THREE.Face3(
+        geometry.vertices.length-4,
+        geometry.vertices.length-2,
+        geometry.vertices.length-1
+      )
+
+      geometry.faces.push(faceOne, faceTwo);
+
+      var xoff = (i % atlas.cols) * (imageSize.width / atlas.width)
+      var yoff = Math.floor(i / atlas.rows) * (imageSize.height / atlas.height)
+
+      geometry.faceVertexUvs[0].push([
+        new THREE.Vector2(xoff, yoff),
+        new THREE.Vector2(xoff + 0.1, yoff),
+        new THREE.Vector2(xoff + 0.1, yoff + 0.1)
+      ]);
+
+      geometry.faceVertexUvs[0].push([
+        new THREE.Vector2(xoff, yoff),
+        new THREE.Vector2(xoff + 0.1, yoff + 0.1),
+        new THREE.Vector2(xoff, yoff + 0.1)
+      ]);
+}
+
+      var mesh = new THREE.Mesh (geometry, material);
+      mesh.position.set(0, 0, 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       return {
         scene: scene,
