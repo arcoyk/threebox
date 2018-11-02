@@ -4,7 +4,7 @@
 
 <script>
   import * as THREE from 'three';
-  import * as TWEEN from 'tween';
+  import * as TWEEN from 'es6-tween';
   import * as TrackballControls from 'three-trackballcontrols'; 
   import * as POSITIONS from './js/positions' 
 
@@ -26,7 +26,7 @@
 
       // === camera ===
       const camera = new THREE.PerspectiveCamera (75, window.innerWidth / window.innerHeight, 0.1, 100000);
-      camera.position.z = 20000;
+      camera.position.z = 300;
 
       // === light ===
       const light = new THREE.DirectionalLight(0xffffff);
@@ -41,12 +41,6 @@
 
 
       // === model ===
-      function getRandomInt() {
-        var val = Math.random() * 4000;
-        return Math.random() > 0.5
-          ? -val
-          : val;
-      }
 
       const loader = new THREE.TextureLoader();
       const material = new THREE.MeshBasicMaterial({
@@ -113,6 +107,10 @@
           new THREE.Vector2(xoff + 0.1, yoff + 0.1),
           new THREE.Vector2(xoff, yoff + 0.1)
         ]);
+
+        if (i > 1000) {
+          break
+        }
       }
 
       var mesh = new THREE.Mesh (geometry, material);
@@ -153,9 +151,10 @@
       this.scene.add( this.camera );
       this.scene.add( this.light);
       this.scene.add( this.mesh );
+      this.scene.add( new THREE.FaceNormalsHelper( this.mesh, 20000, 0x00ff00, 11 ) );
       this.controls = new TrackballControls( this.camera, this.renderBox );
       // document.addEventListener('mousedown', this.onMouseDown, false)
-      setInterval(this.animateCameraPos, 6000)
+      setInterval(this.animateCameraPos, 5000)
     },
 
     mounted () {
@@ -165,40 +164,53 @@
     },
 
     methods: {
+      billboardfy(arr) {
+        for (var a of arr) {
+          a.quaternion.copy( this.camera.quaternion );
+        }
+      },
+
       onMouseDown(e) {
-        console.log(e)
         this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
         this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camera)
         var ins = this.raycaster.intersectObjects( this.scene.children )
         if (ins.length > 0) {
-          var p = ins[0].point
-          this.animateCameraPos(0, 0, 0)
+          // var p = ins[0].point
+          // this.camera.position.setX(p.x)
+          // this.camera.position.setY(p.y)
+          // this.camera.position.setZ(p.z + 100)
+          // this.animateCameraPos(0, 0, Math.random() * 4000)
         }
       },
       
       animateCameraPos(x,y,z) {
-        x = (Math.random() - Math.random()) * 4000
+        z = 5000
         y = (Math.random() - Math.random()) * 4000
-        z = (Math.random() - Math.random()) * 4000
+        x = (Math.random() - Math.random()) * 4000
         const that = this;
         // const coords = new THREE.Vector3()
         const coords = this.camera.position
+        // const coords = new THREE.Vector3().copy(this.camera.position)
         // coords.copy(this.camera.position); // 現在地点
         const destinationVector = new THREE.Vector3(x, y, z); // 終着地点
-        const DURATION = 1000;
+        const DURATION = 500;
         that.tweenFlag = true
+        that.zeroVector = new THREE.Vector3()
         that.controls.enabled = false
 
+        const {autoPlay, Easing, onTick, Tween} = TWEEN;
+        autoPlay(false)
+
         const tween = new TWEEN.Tween(coords)
-          .to(destinationVector, 500)
-          .easing(TWEEN.Easing.Cubic.Out) // 最後で減速する
-          .onUpdate(update) // TWEEN.update()の度に呼び出される
-          .onComplete(complete)
+          .to(destinationVector, DURATION)
+          .easing(Easing.Cubic.Out) // 最後で減速する
+          .on('update', update)
+          .on('complete', complete)
           .start();
 
         function update() {
-          // that.camera.lookAt(that.zeroVector); // 向きを変えながら移動
+          that.camera.lookAt(that.zeroVector); // 向きを変えながら移動
         }
         // 終着地点に着き次第、requestAnimationFrameをストップ
         function complete() {
@@ -212,10 +224,14 @@
 
         // this.mesh.rotation.x += 0.05;
         // this.mesh.rotation.y += 0.05;
-        if (this.tweenFlag) {
-          TWEEN.update();
+        if (this.controls.enabled) {
+          this.controls.update(); 
         } else {
-          // this.controls.update(); 
+          TWEEN.update();
+        }
+
+        for (var face of this.mesh.geometry.faces) {
+          // face.normal = new THREE.Vector3(1, 1, 1)
         }
         this.renderer.render(this.scene, this.camera);
       }
