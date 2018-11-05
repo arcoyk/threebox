@@ -32,9 +32,9 @@ export default {
 
     // == Object ==
     let g = new THREE.PlaneGeometry(10, 10, 32)
-    var m = new THREE.MeshBasicMaterial({
-      color: 0xffff00,
-      side: THREE.DoubleSide
+    var m = new THREE.ShaderMaterial({
+      vertexShader: SHADER.vshader,
+      fragmentShader: SHADER.fshader
     })
     let plane = new THREE.Mesh(g, m)
     scene.add(plane)
