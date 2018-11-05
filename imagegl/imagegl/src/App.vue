@@ -1,5 +1,14 @@
 <template>
-  <div ref="stage"></div>
+  <span>
+    <div ref="stage"></div>
+    <script type="text/x-shader" id="vshader">
+    </script>
+    <script type="text/x-shader" id="fshader">
+      void main() {
+          gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 );
+      }
+    </script>
+  </span>
 </template>
 
 <script>
@@ -7,6 +16,7 @@
   import * as TWEEN from 'es6-tween';
   import * as TrackballControls from 'three-trackballcontrols'; 
   import * as POSITIONS from './js/positions' 
+  import * as SHADER from './js/shader'
 
   export default {
 
@@ -41,19 +51,31 @@
 
 
       // === model ===
+      var material = {}
 
-      const loader = new THREE.TextureLoader();
-      const material = new THREE.MeshBasicMaterial({
-        map: loader.load('../static/100-img-atlas.jpg')
-      });
+      if (true) {
+        const loader = new THREE.TextureLoader();
+        material = new THREE.MeshBasicMaterial({
+          map: loader.load('../static/100-img-atlas.jpg')
+        });
+      } else {
+        material = new THREE.ShaderMaterial( {
+          vertexShader: SHADER.vshader,
+          fragmentShader: SHADER.fshader,
+          side: THREE.DoubleSide
+        })
+      }
+
       var imageSize = {width: 128, height: 128}
       var atlas = {width: 1280, height: 1280, cols: 10, rows: 10}
-
       var geometry = new THREE.Geometry();
-
 
       for (var i in POSITIONS) {
         const coords = POSITIONS[i]
+        coords.x /= 10
+        coords.y /= 10
+        coords.z /= 100
+        coords.z -= 300
         geometry.vertices.push(
           new THREE.Vector3(
             coords.x,
@@ -107,13 +129,14 @@
           new THREE.Vector2(xoff, yoff + 0.1)
         ]);
 
-        if (i > 1000) {
+        if (i > 10) {
           break
         }
       }
 
+      // var geometry = new THREE.PlaneGeometry( 100, 100 );
       var mesh = new THREE.Mesh (geometry, material);
-      mesh.position.set(0, 0, 0);
+      mesh.position.z = 5
 
 
 
@@ -153,11 +176,14 @@
       this.controls = new TrackballControls( this.camera, this.renderBox );
       // document.addEventListener('mouseup', this.onMouseDown, false)
       // setInterval(this.animateCameraPos, 5000)
-      this.camera.lookAt(new THREE.Vector3(1000, 0, 0))
+
+      /*
+      this.camera.lookAt(new THREE.Vector3(100, 0, 0))
       this.qa_right = (new THREE.Quaternion()).copy(this.camera.quaternion)
-      this.camera.lookAt(new THREE.Vector3(-1000, 0, 0))
+      this.camera.lookAt(new THREE.Vector3(-100, 0, 0))
       this.qa_left = (new THREE.Quaternion()).copy(this.camera.quaternion)
-      setInterval(this.animateCameraLook, 1000)
+      */
+      // setInterval(this.animateCameraLook, 1000)
     },
 
     mounted () {
@@ -188,7 +214,6 @@
           var mesh2 = new THREE.Mesh( geometry2, material2 );
           this.scene.add( mesh2 );
           mesh2.position.set(p.x, p.y, p.z)
-          console.log(mesh2.position)
           this.animateCameraPos(p)
           // this.camera.position.setX(p.x)
           // this.camera.position.setY(p.y)
@@ -199,7 +224,6 @@
 
       animateCameraLook() {
         const that = this
-        console.log(that.qa)
         const eye = this.camera.quaternion
         that.tweenFlag = true
         that.controls.enabled = false
@@ -207,14 +231,14 @@
         autoPlay(true)
 
         that.qa = that.qa || that.qa_left
-        if (that.qa._y == -0.5969305296404493) {
+        if (that.qa._y == that.qa_right._y) {
           that.qa = that.qa_left
         } else {
           that.qa = that.qa_right
         }
 
         const tween = new TWEEN.Tween(eye)
-          .to(that.qa, 1000)
+          .to(that.qa, 500)
           .easing(Easing.Cubic.Out) // 最後で減速する
           .start();
       },
@@ -263,11 +287,7 @@
         if (this.controls.enabled) {
           this.controls.update(); 
         } else {
-          TWEEN.update();
-        }
-
-        for (var face of this.mesh.geometry.faces) {
-          // face.normal = new THREE.Vector3(1, 1, 1)
+          // TWEEN.update();
         }
         this.renderer.render(this.scene, this.camera);
       }
