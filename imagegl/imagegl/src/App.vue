@@ -17,140 +17,91 @@
   import * as TrackballControls from 'three-trackballcontrols'; 
   import * as POSITIONS from './js/positions' 
   import * as SHADER from './js/shader'
-
   export default {
-
     name: 'sample',
-
     data: function() {
+      const imageSize = {width: 128, height: 128}
+      const atlas = {width: 1280, height: 1280, cols: 10, rows: 10}
       // === interaction ==
       var mouse = new THREE.Vector2();
       var raycaster = new THREE.Raycaster ();
-
       // === scene ===
       const scene = new THREE.Scene ();
-
       // === renderer ===
       const renderer = new THREE.WebGLRenderer ();
       renderer.setSize( window.innerWidth, window.innerHeight );
-
       // === camera ===
       const camera = new THREE.PerspectiveCamera (75, window.innerWidth / window.innerHeight, 0.1, 100000);
-      camera.position.z = 300;
-
+      camera.position.z = 2000;
       // === light ===
       const light = new THREE.DirectionalLight(0xffffff);
       light.position.set(0, 0, 10);
-
-
-
-
-
-
-
-
-
       // === model ===
-      var material = {}
 
-      if (true) {
-        const loader = new THREE.TextureLoader();
-        material = new THREE.MeshBasicMaterial({
+      var loader = new THREE.TextureLoader()
+      var material = new THREE.ShaderMaterial( {
+        vertexShader: SHADER.vshader,
+        fragmentShader: SHADER.fshader,
+        wireframe: true,
+        uniforms: {
           map: loader.load('../static/100-img-atlas.jpg')
-        });
-      } else {
-        material = new THREE.ShaderMaterial( {
-          vertexShader: SHADER.vshader,
-          fragmentShader: SHADER.fshader,
-          side: THREE.DoubleSide
-        })
-      }
-
-      var imageSize = {width: 128, height: 128}
-      var atlas = {width: 1280, height: 1280, cols: 10, rows: 10}
-      var geometry = new THREE.Geometry();
-
-      for (var i in POSITIONS) {
-        const coords = POSITIONS[i]
-        coords.x /= 10
-        coords.y /= 10
-        coords.z /= 100
-        coords.z -= 300
-        geometry.vertices.push(
-          new THREE.Vector3(
-            coords.x,
-            coords.y,
-            coords.z
-          ),
-          new THREE.Vector3(
-            coords.x+imageSize.width,
-            coords.y,
-            coords.z
-          ),
-          new THREE.Vector3(
-            coords.x+imageSize.width,
-            coords.y+imageSize.height,
-            coords.z
-          ),
-          new THREE.Vector3(
-            coords.x,
-            coords.y+imageSize.height,
-            coords.z
-          )
-        );
-
-        var faceOne = new THREE.Face3(
-          geometry.vertices.length-4,
-          geometry.vertices.length-3,
-          geometry.vertices.length-2
-        )
-
-        var faceTwo = new THREE.Face3(
-          geometry.vertices.length-4,
-          geometry.vertices.length-2,
-          geometry.vertices.length-1
-        )
-
-        geometry.faces.push(faceOne, faceTwo);
-
-        const k = i % 100
-        var xoff = (k % atlas.cols) * (imageSize.width / atlas.width)
-        var yoff = Math.floor(k / atlas.rows) * (imageSize.height / atlas.height)
-
-        geometry.faceVertexUvs[0].push([
-          new THREE.Vector2(xoff, yoff),
-          new THREE.Vector2(xoff + 0.1, yoff),
-          new THREE.Vector2(xoff + 0.1, yoff + 0.1)
-        ]);
-
-        geometry.faceVertexUvs[0].push([
-          new THREE.Vector2(xoff, yoff),
-          new THREE.Vector2(xoff + 0.1, yoff + 0.1),
-          new THREE.Vector2(xoff, yoff + 0.1)
-        ]);
-
-        if (i > 10) {
-          break
         }
+      })
+
+      function createRect( c ) {
+        const w = imageSize.width / 2
+        const h = imageSize.height / 2
+        const ps = [
+          c.x + w, c.y + h, c.z,
+          c.x - w, c.y + h, c.z,
+          c.x - w, c.y - h, c.z,
+
+          c.x - w, c.y - h, c.z,
+          c.x + w, c.y - h, c.z,
+          c.x + w, c.y + h, c.z
+        ]
+        const ix = [
+          0, 1, 2,
+          2, 3, 0
+        ]
+        return { positions: ps, indices: ix }
       }
+
+      const N = 100
+
+      // Base geometry
+      var base = new THREE.BufferGeometry()
+      const rect = createRect( { x: 0, y: 0, z: 0 } )
+      // const positionAttribute = new THREE.Float32BufferAttribute( rect.positions, 3 )
+      // const indices = new THREE.Uint16BufferAttribute( rect.indices, 1 ) 
+      var positions = new Float32Array( rect.positions )
+      var indices = new Uint16Array( rect.indices )
+      var positionAttribute = new THREE.BufferAttribute( positions, 3 )
+      var indexAttribute = new THREE.BufferAttribute( indices, 1 )
+      base.addAttribute( 'position', positionAttribute )
+      // setIndex doesn't work...
+      base.setIndex( indexAttribute )
+
+      // Instance buffer
+      var instances = new THREE.InstancedBufferGeometry()
+      var vertices = base.attributes.position.clone()
+      instances.addAttribute( 'position', vertices )
+
+      // Uniform for each instance
+      var buf = new Float32Array( N * 3 )
+      var trans = new THREE.InstancedBufferAttribute( buf, 3, false, 1 )
+      const S = 1000
+      for (var i = 0; i < N; i++) {
+        var x = (Math.random() - Math.random()) * S
+        var y = (Math.random() - Math.random()) * S
+        var z = (Math.random() - Math.random()) * S
+        trans.setXYZ(i, x, y, z)
+      }
+      instances.addAttribute( 'trans', trans )
 
       // var geometry = new THREE.PlaneGeometry( 100, 100 );
-      var mesh = new THREE.Mesh (geometry, material);
+      var mesh = new THREE.Mesh (instances, material);
       mesh.position.z = 5
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       return {
         tweenFlag: false,
@@ -163,11 +114,6 @@
         mesh: mesh
       }
     },
-
-
-
-
-
     created () {
       // === sceneにmodel,light, cameraを追加 ===
       this.scene.add( this.camera );
@@ -205,10 +151,7 @@
         this.raycaster.setFromCamera(this.mouse, this.camera)
         var ins = this.raycaster.intersectObjects( this.scene.children )
         if (ins.length > 0) {
-
-
           var p = ins[0].point
-
           var geometry2 = new THREE.BoxBufferGeometry( 100, 100, 100 );
           var material2 = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
           var mesh2 = new THREE.Mesh( geometry2, material2 );
