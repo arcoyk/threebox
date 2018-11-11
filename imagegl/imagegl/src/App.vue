@@ -1,13 +1,6 @@
 <template>
   <span>
     <div ref="stage"></div>
-    <script type="text/x-shader" id="vshader">
-    </script>
-    <script type="text/x-shader" id="fshader">
-      void main() {
-          gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 );
-      }
-    </script>
   </span>
 </template>
 
@@ -32,11 +25,32 @@
       renderer.setSize( window.innerWidth, window.innerHeight );
       // === camera ===
       const camera = new THREE.PerspectiveCamera (75, window.innerWidth / window.innerHeight, 0.1, 100000);
-      camera.position.z = 2000;
+      camera.position.z = 10;
       // === light ===
-      const light = new THREE.DirectionalLight(0xffffff);
-      light.position.set(0, 0, 10);
+      const light1 = new THREE.DirectionalLight(0xffffff);
+      light1.position.set(10, 10, 10);
+      const light2 = new THREE.DirectionalLight(0xffffff);
+      light2.position.set(-10, -10, -10);
       // === model ===
+      var cubes = []
+      for (var i = 0; i < 3; i++) {
+        var xyz = [0.1, 0.1, 0.1]
+        xyz[i] = 0
+        var geo = new THREE.BoxGeometry( xyz[0], xyz[1], xyz[2] )
+        var col = '#ff0000'
+        if (i == 1) {
+          col = '#00ff00'
+        } else if (i == 2) {
+          col = '#0000ff'
+        }
+        var mat = new THREE.MeshPhongMaterial( { color: col } )
+        var cube = new THREE.Mesh( geo, mat )
+        cube.position.set( xyz[0] / 2, xyz[1] / 2,  xyz[2] / 2)
+        cubes.push( cube )
+      }
+
+      var geo = new THREE.BoxGeometry( 0.1, 100, 0.1 )
+      var mat = new THREE.MeshPhongMaterial( { color: '#ff00ff' } )
 
       var loader = new THREE.TextureLoader()
       var material = new THREE.ShaderMaterial( {
@@ -44,64 +58,86 @@
         fragmentShader: SHADER.fshader,
         wireframe: true,
         uniforms: {
+          cameraUp: { type: 'uVec3', value: camera.up.toArray() },
           map: loader.load('../static/100-img-atlas.jpg')
         }
       })
 
-      function createRect( c ) {
-        const w = imageSize.width / 2
-        const h = imageSize.height / 2
+      function createRect() {
+        var w = imageSize.width / 2
+        var h = imageSize.height / 2
+        w = 1.0
+        h = 1.0
         const ps = [
-          c.x + w, c.y + h, c.z,
-          c.x - w, c.y + h, c.z,
-          c.x - w, c.y - h, c.z,
-
-          c.x - w, c.y - h, c.z,
-          c.x + w, c.y - h, c.z,
-          c.x + w, c.y + h, c.z
         ]
         const ix = [
           0, 1, 2,
-          2, 3, 0
+          0, 2, 3 
         ]
-        return { positions: ps, indices: ix }
+        const mv = [
+          ( Math.random() - Math.random() ) * 10,
+          ( Math.random() - Math.random() ) * 10,
+          ( Math.random() - Math.random() ) * 10
+        ]
+        return { position: ps, index: ix, move: mv }
       }
 
-      const N = 100
 
-      // Base geometry
-      var base = new THREE.BufferGeometry()
-      const rect = createRect( { x: 0, y: 0, z: 0 } )
-      // const positionAttribute = new THREE.Float32BufferAttribute( rect.positions, 3 )
-      // const indices = new THREE.Uint16BufferAttribute( rect.indices, 1 ) 
-      var positions = new Float32Array( rect.positions )
-      var indices = new Uint16Array( rect.indices )
-      var positionAttribute = new THREE.BufferAttribute( positions, 3 )
-      var indexAttribute = new THREE.BufferAttribute( indices, 1 )
-      base.addAttribute( 'position', positionAttribute )
-      // setIndex doesn't work...
-      base.setIndex( indexAttribute )
+      const N = 10
+      var rect = createRect()
 
-      // Instance buffer
-      var instances = new THREE.InstancedBufferGeometry()
-      var vertices = base.attributes.position.clone()
-      instances.addAttribute( 'position', vertices )
+      /*
+  var instances = new THREE.InstancedBufferGeometry()
 
-      // Uniform for each instance
-      var buf = new Float32Array( N * 3 )
-      var trans = new THREE.InstancedBufferAttribute( buf, 3, false, 1 )
-      const S = 1000
-      for (var i = 0; i < N; i++) {
-        var x = (Math.random() - Math.random()) * S
-        var y = (Math.random() - Math.random()) * S
-        var z = (Math.random() - Math.random()) * S
-        trans.setXYZ(i, x, y, z)
+  var index = ba( [ 0, 1, 2, 0, 2, 3] , 1 )
+
+  // moves attribute
+  var move = []
+  const S = 1000
+  for (var i = 0; i < N * 3; i++) {
+    move.push((Math.random() - Math.random()) * S)
+  }
+  move = ba( move, 3 )
+
+  instances.addAttribute( 'move', moves )
+  instances.addAttribute( 'index', indices )
+      */
+
+      var position = []
+      var index    = []
+      var move     = []
+      var NN = 10
+
+      for (var i = 0; i < NN; i++) {
+        rect = createRect()
+        position = position.concat( rect.position )
+        for (var k = 0; k < 6; k++) {
+          rect.index[k] += 4 * i
+        }
+        index = index.concat( rect.index )
+        for (var k = 0; k < 4; k++) {
+          move = move.concat( rect.move )
+        }
       }
-      instances.addAttribute( 'trans', trans )
 
-      // var geometry = new THREE.PlaneGeometry( 100, 100 );
-      var mesh = new THREE.Mesh (instances, material);
-      mesh.position.z = 5
+      function ba( arr, itemSize ) {
+        return new THREE.BufferAttribute( 
+          new Float32Array( arr ),
+          itemSize
+        )
+      }
+
+      position  = ba( position, 3 )
+      index     = ba( index,    1 )
+      move      = ba( move,     3 )
+
+      var geometry = new THREE.BufferGeometry()
+      geometry.addAttribute( 'position', position ) 
+      geometry.addAttribute( 'index',    index.clone() )
+      geometry.addAttribute( 'mindex',   index.clone() )
+      geometry.addAttribute( 'move',     move )
+
+      var mesh = new THREE.Mesh (geometry, material);
 
       return {
         tweenFlag: false,
@@ -110,15 +146,22 @@
         scene: scene,
         renderer: renderer,
         camera: camera,
-        light: light,
+        light1: light1,
+        light2: light2,
+        cubes: cubes,
         mesh: mesh
       }
     },
+
     created () {
       // === sceneにmodel,light, cameraを追加 ===
       this.scene.add( this.camera );
-      this.scene.add( this.light);
+      this.scene.add( this.light1);
+      this.scene.add( this.light2);
       this.scene.add( this.mesh );
+      for (var cube of this.cubes) {
+        this.scene.add( cube );
+      }
       this.controls = new TrackballControls( this.camera, this.renderBox );
       // document.addEventListener('mouseup', this.onMouseDown, false)
       // setInterval(this.animateCameraPos, 5000)
@@ -224,9 +267,10 @@
 
       animate () {
         requestAnimationFrame( this.animate );
-
         // this.mesh.rotation.x += 0.05;
         // this.mesh.rotation.y += 0.05;
+        this.mesh.material.uniforms.cameraUp.value = this.camera.up.toArray()
+        this.mesh.material.needsUpdate = true;
         if (this.controls.enabled) {
           this.controls.update(); 
         } else {
