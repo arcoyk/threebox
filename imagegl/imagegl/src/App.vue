@@ -38,22 +38,16 @@
         xyz[i] = 0
         var geo = new THREE.BoxGeometry( xyz[0], xyz[1], xyz[2] )
         var col = '#ff0000'
-        if (i == 1) {
-          col = '#00ff00'
-        } else if (i == 2) {
-          col = '#0000ff'
-        }
+        if (i == 1) { col = '#00ff00' } else if (i == 2) { col = '#0000ff'}
         var mat = new THREE.MeshPhongMaterial( { color: col } )
         var cube = new THREE.Mesh( geo, mat )
         cube.position.set( xyz[0] / 2, xyz[1] / 2,  xyz[2] / 2)
         cubes.push( cube )
       }
 
-      var geo = new THREE.BoxGeometry( 0.1, 100, 0.1 )
-      var mat = new THREE.MeshPhongMaterial( { color: '#ff00ff' } )
-
+      // instances 
       var loader = new THREE.TextureLoader()
-      var material = new THREE.ShaderMaterial( {
+      var mat = new THREE.ShaderMaterial( {
         vertexShader: SHADER.vshader,
         fragmentShader: SHADER.fshader,
         wireframe: true,
@@ -63,81 +57,50 @@
         }
       })
 
-      function createRect() {
-        var w = imageSize.width / 2
-        var h = imageSize.height / 2
-        w = 1.0
-        h = 1.0
-        const ps = [
-        ]
-        const ix = [
-          0, 1, 2,
-          0, 2, 3 
-        ]
-        const mv = [
-          ( Math.random() - Math.random() ) * 10,
-          ( Math.random() - Math.random() ) * 10,
-          ( Math.random() - Math.random() ) * 10
-        ]
-        return { position: ps, index: ix, move: mv }
-      }
-
-
-      const N = 10
-      var rect = createRect()
-
-      /*
-  var instances = new THREE.InstancedBufferGeometry()
-
-  var index = ba( [ 0, 1, 2, 0, 2, 3] , 1 )
-
-  // moves attribute
-  var move = []
-  const S = 1000
-  for (var i = 0; i < N * 3; i++) {
-    move.push((Math.random() - Math.random()) * S)
-  }
-  move = ba( move, 3 )
-
-  instances.addAttribute( 'move', moves )
-  instances.addAttribute( 'index', indices )
-      */
-
-      var position = []
-      var index    = []
-      var move     = []
-      var NN = 10
-
-      for (var i = 0; i < NN; i++) {
-        rect = createRect()
-        position = position.concat( rect.position )
-        for (var k = 0; k < 6; k++) {
-          rect.index[k] += 4 * i
-        }
-        index = index.concat( rect.index )
-        for (var k = 0; k < 4; k++) {
-          move = move.concat( rect.move )
+      function easyAttr( arr, itemSize, instanced=false ) {
+        if (!instanced) {
+          return new THREE.BufferAttribute( 
+            new Float32Array( arr ),
+            itemSize
+          )
+        } else {
+          return new THREE.InstancedBufferAttribute( 
+            new Float32Array( arr ),
+            itemSize
+          )
         }
       }
-
-      function ba( arr, itemSize ) {
-        return new THREE.BufferAttribute( 
-          new Float32Array( arr ),
-          itemSize
-        )
+      
+      function gen_move() {
+        var move = []
+        const S = 1
+        const N = 100
+        for (var i = 0; i < N * 3; i++) {
+          move.push((Math.random() - Math.random()) * S)
+        }
+        return move
       }
 
-      position  = ba( position, 3 )
-      index     = ba( index,    1 )
-      move      = ba( move,     3 )
+      function gen_posi() {
+        var posi = [
+          0.0, 1.0, 0.0,
+          1.0, 1.0, 0.0,
+          1.0, 0.0, 0.0,
+          0.0, 0.0, 0.0
+        ]
+        return posi
+      }
 
-      var geometry = new THREE.BufferGeometry()
-      geometry.addAttribute( 'position', position ) 
-      geometry.addAttribute( 'index',    index.clone() )
-      geometry.addAttribute( 'mindex',   index.clone() )
-      geometry.addAttribute( 'move',     move )
-
-      var mesh = new THREE.Mesh (geometry, material);
+      var geo = new THREE.InstancedBufferGeometry()
+      var position  = easyAttr( gen_posi(), 3 ) 
+      var index     = easyAttr( [0, 1, 2, 3, 2] , 1 )
+      var move      = easyAttr( gen_move(), 3, true )
+      geo.addAttribute( 'position', position )
+      geo.addAttribute( 'index', index.clone() )
+      geo.addAttribute( 'mindex', index.clone() )
+      geo.addAttribute( 'move', move )
+      
+      var mesh = new THREE.Mesh(geo, mat);
 
       return {
         tweenFlag: false,

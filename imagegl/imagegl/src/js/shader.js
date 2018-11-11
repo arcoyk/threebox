@@ -53,12 +53,15 @@ void main() {
   vec3 v1 = normalize( cameraUp );
   vec3 v2 = normalize( cameraPosition );
   vec3 v3 = rotate_vertex_position( v2, v1, 3.14 / 2.0 );
+  v1 /= 10.0;
+  v2 /= 10.0;
+  v3 /= 10.0;
   // float theta = acos( dot( v1, v2 ) ); 
   // vec3 axis = cross( v1, vec3( v2 );
   // vec3 p = rotate_vertex_position( position, axis, theta );
   // vec3 p = rotate_vertex_position( position, axis, theta );
   float s = 1.0;
-  vec3 p = vec3(0.0, 0.0, 0.0);
+  vec3 p = position;
   if ( mod(mindex, 4.0) == 0.0 ) {
     // p = vec3(0.0,   s, 0.0);
     p = v1;
