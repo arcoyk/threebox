@@ -13,8 +13,7 @@
   export default {
     name: 'sample',
     data: function() {
-      const imageSize = {width: 128, height: 128}
-      const atlas = {width: 1280, height: 1280, cols: 10, rows: 10}
+      const atlas = { width: 1280, height: 1280, cols: 10, rows: 10 }
       // === interaction ==
       var mouse = new THREE.Vector2();
       var raycaster = new THREE.Raycaster ();
@@ -24,85 +23,51 @@
       const renderer = new THREE.WebGLRenderer ();
       renderer.setSize( window.innerWidth, window.innerHeight );
       // === camera ===
-      const camera = new THREE.PerspectiveCamera (75, window.innerWidth / window.innerHeight, 0.1, 100000);
-      camera.position.z = 2;
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const camera = new THREE.PerspectiveCamera ( 75, width / height, 0.1, 100000 );
+      camera.position.z = 5;
+      camera.position.x = 5;
+      camera.position.y = 5;
       // === light ===
-      const light1 = new THREE.DirectionalLight(0xffffff);
-      light1.position.set(10, 10, 10);
-      const light2 = new THREE.DirectionalLight(0xffffff);
-      light2.position.set(-10, -10, -10);
+      const light1 = new THREE.DirectionalLight( 0xffffff );
+      light1.position.set( 10, 10, 10 );
+      const light2 = new THREE.DirectionalLight( 0xffffff );
+      light2.position.set( 10, 0, -10 );
       // === model ===
-      var cubes = []
-      for (var i = 0; i < 3; i++) {
-        var xyz = [0.1, 0.1, 0.1]
-        xyz[i] = 0
-        var geo = new THREE.BoxGeometry( xyz[0], xyz[1], xyz[2] )
-        var col = '#ff0000'
-        if (i == 1) { col = '#00ff00' } else if (i == 2) { col = '#0000ff'}
-        var mat = new THREE.MeshPhongMaterial( { color: col } )
-        var cube = new THREE.Mesh( geo, mat )
-        cube.position.set( xyz[0] / 2, xyz[1] / 2,  xyz[2] / 2)
-        cubes.push( cube )
-      }
-
-      // instances 
+      // cube
+      var g = new THREE.BoxGeometry( 0, 0, 0 )
+      var m = new THREE.MeshPhongMaterial()
+      var cube = new THREE.Mesh( g, m )
       var loader = new THREE.TextureLoader()
+      var uniforms = {
+        texture: loader.load('../static/100-img-atlas.jpg'),
+        repeat: { value: [ atlas.width / atlas.cols, atlas.height / atlas.rows ] }
+      }
       var mat = new THREE.ShaderMaterial( {
         vertexShader: SHADER.vshader,
         fragmentShader: SHADER.fshader,
-        wireframe: true,
-        uniforms: {
-          cameraUp: { type: 'uVec3', value: camera.up.toArray() },
-          map: loader.load('../static/100-img-atlas.jpg')
-        }
+        uniforms: uniforms
       })
-
-      function easyAttr( arr, itemSize, instanced=false ) {
-        if (!instanced) {
-          return new THREE.BufferAttribute( 
-            new Float32Array( arr ),
-            itemSize
-          )
-        } else {
-          return new THREE.InstancedBufferAttribute( 
-            new Float32Array( arr ),
-            itemSize
-          )
-        }
+      // particles
+      var geo = new THREE.BufferGeometry()
+      var position_arr = []
+      var offset_arr = []
+      var N = 100
+      for (var i = 0; i < N * 3; i++) {
+        position_arr.push( (Math.random() - Math.random()) * 500 )
       }
-
-      function gen_move() {
-        var move = []
-        const S = 1
-        const N = 40
-        for (var i = 0; i < N * 3; i++) {
-          move.push((Math.random() - Math.random()) * S)
-        }
-        return move
+      for (var i = 0; i < N; i++) {
+        var x = Math.floor( Math.random() * atlas.cols ) * atlas.width / atlas.cols
+        var y = Math.floor( Math.random() * atlas.rows ) * atlas.height / atlas.rows
+        offset_arr.push( x )
+        offset_arr.push( y )
       }
-
-      function gen_posi() {
-        var posi = [
-          0.0, 1.0, 0.0,
-          1.0, 1.0, 0.0,
-          1.0, 0.0, 0.0,
-          0.0, 0.0, 0.0
-        ]
-        return posi
-      }
-
-      var geo = new THREE.InstancedBufferGeometry()
-      var position  = easyAttr( gen_posi(), 3 ) 
-      // int is not available on WebGL...Brah
-      var index     = easyAttr( [0, 1, 2, 3, 2] , 1 )
-      var move      = easyAttr( gen_move(), 3, true )
+      var position = new THREE.BufferAttribute( new Float32Array( position_arr ), 3 )
+      var offset = new THREE.BufferAttribute( new Float32Array( offset_arr ), 2 )
       geo.addAttribute( 'position', position )
-      geo.addAttribute( 'index', index.clone() )
-      geo.addAttribute( 'mindex', index.clone() )
-      geo.addAttribute( 'move', move )
-      
-      var mesh = new THREE.Mesh(geo, mat);
-
+      geo.addAttribute( 'offset', offset )
+      var mesh = new THREE.Points( geo, mat );
       return {
         tweenFlag: false,
         mouse: mouse,
@@ -112,7 +77,7 @@
         camera: camera,
         light1: light1,
         light2: light2,
-        cubes: cubes,
+        cube: cube,
         mesh: mesh
       }
     },
@@ -123,9 +88,7 @@
       this.scene.add( this.light1);
       this.scene.add( this.light2);
       this.scene.add( this.mesh );
-      for (var cube of this.cubes) {
-        this.scene.add( cube );
-      }
+      this.scene.add( this.cube );
       this.controls = new TrackballControls( this.camera, this.renderBox );
       // document.addEventListener('mouseup', this.onMouseDown, false)
       // setInterval(this.animateCameraPos, 5000)
@@ -216,7 +179,7 @@
         requestAnimationFrame( this.animate );
         // this.mesh.rotation.x += 0.05;
         // this.mesh.rotation.y += 0.05;
-        this.mesh.material.uniforms.cameraUp.value = this.camera.up.toArray()
+        // this.mesh.material.uniforms.cameraUp.value = this.camera.up.toArray()
         // this.mesh.material.needsUpdate = true;
         if (this.controls.enabled) {
           this.controls.update(); 
