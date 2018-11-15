@@ -40,8 +40,9 @@
       var m = new THREE.MeshPhongMaterial()
       var cube = new THREE.Mesh( g, m )
       var loader = new THREE.TextureLoader()
+      var texture = loader.load('../static/100-img-atlas.jpg')
       var uniforms = {
-        texture: loader.load('../static/100-img-atlas.jpg'),
+        texture: { value: texture },
         repeat: { value: [ atlas.width / atlas.cols, atlas.height / atlas.rows ] }
       }
       var mat = new THREE.ShaderMaterial( {
@@ -58,8 +59,8 @@
         position_arr.push( (Math.random() - Math.random()) * 500 )
       }
       for (var i = 0; i < N; i++) {
-        var x = Math.floor( Math.random() * atlas.cols ) * atlas.width / atlas.cols
-        var y = Math.floor( Math.random() * atlas.rows ) * atlas.height / atlas.rows
+        var x = Math.floor( Math.random() * (atlas.cols - 1) ) / atlas.cols
+        var y = Math.floor( Math.random() * (atlas.rows - 1) ) / atlas.rows
         offset_arr.push( x )
         offset_arr.push( y )
       }
