@@ -56,7 +56,7 @@
       var offset_arr = []
       var N = 100
       for (var i = 0; i < N * 3; i++) {
-        position_arr.push( (Math.random() - Math.random()) * 500 )
+        position_arr.push( (Math.random() - Math.random()) * 50 )
       }
       for (var i = 0; i < N; i++) {
         var x = Math.floor( Math.random() * (atlas.cols - 1) ) / atlas.cols
@@ -70,6 +70,7 @@
       geo.addAttribute( 'offset', offset )
       var mesh = new THREE.Points( geo, mat );
       return {
+        lastmouse: { x: 0, y: 0 },
         tweenFlag: false,
         mouse: mouse,
         raycaster: raycaster,
@@ -85,15 +86,14 @@
 
     created () {
       // === sceneにmodel,light, cameraを追加 ===
-      this.scene.add( this.camera );
-      this.scene.add( this.light1);
-      this.scene.add( this.light2);
-      this.scene.add( this.mesh );
-      this.scene.add( this.cube );
-      this.controls = new TrackballControls( this.camera, this.renderBox );
-      // document.addEventListener('mouseup', this.onMouseDown, false)
-      // setInterval(this.animateCameraPos, 5000)
-      // setInterval(this.animateCameraLook, 1000)
+      this.scene.add( this.camera )
+      this.scene.add( this.light1)
+      this.scene.add( this.light2)
+      this.scene.add( this.mesh )
+      this.scene.add( this.cube )
+      this.controls = new TrackballControls( this.camera, this.renderBox )
+      document.addEventListener('mousedown', this.onMouseDown, false)
+      document.addEventListener('mouseup', this.onMouseUp, false)
     },
 
     mounted () {
@@ -109,22 +109,29 @@
       },
 
       onMouseDown(e) {
+        this.lastmouse.x = e.x
+        this.lastmouse.y = e.y
+      },
+
+      onMouseUp(e) {
+        if (this.lastmouse.x == e.x && this.lastmouse.y == e.y) {
+          this.onStaticClick(e)
+        }
+      },
+
+      onStaticClick(e) {
         this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
         this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camera)
         var ins = this.raycaster.intersectObjects( this.scene.children )
         if (ins.length > 0) {
           var p = ins[0].point
-          var geometry2 = new THREE.BoxBufferGeometry( 100, 100, 100 );
-          var material2 = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+          var geometry2 = new THREE.BoxBufferGeometry( 1, 1, 1 )
+          var material2 = new THREE.MeshBasicMaterial( { color: 0xffff00 } )
           var mesh2 = new THREE.Mesh( geometry2, material2 );
-          this.scene.add( mesh2 );
-          mesh2.position.set(p.x, p.y, p.z)
-          this.animateCameraPos(p)
-          // this.camera.position.setX(p.x)
-          // this.camera.position.setY(p.y)
-          // this.camera.position.setZ(p.z + 100)
-          // this.animateCameraPos(0, 0, Math.random() * 4000)
+          this.scene.add( mesh2 )
+          mesh2.position.set( p.x, p.y, p.z )
+          // this.animateCameraPos( p )
         }
       },
 
@@ -149,7 +156,6 @@
           .start();
       },
 
-      
       animateCameraPos(tar) {
         const that = this;
         const coords = this.camera.position
