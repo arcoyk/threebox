@@ -31,14 +31,15 @@
 						color: 0xaa00aa
 					} );
 					plane = new THREE.Mesh(geo, mat);
-					// plane.rotation.x = -Math.PI / 2;
+					plane.rotation.x = -Math.PI / 2;
 					plane.position.x = 0;
-					plane.position.z = 0;
-					plane.position.y = i * 10;
+					plane.position.z = i * 10;
+					plane.position.y = 10;
 					scene.add(plane);
 					if (i != 0) {
 						_.last(ps).add(plane);
 					}
+
 					ps.push(plane);
 				}
 
@@ -52,7 +53,7 @@
 					renderer.render(scene, camera);
 					controls.update();
 					for (var p of ps) {
-						p.rotation.x += 0.01;
+						p.rotation.z += 0.01;
 					}
 				} );
 
