@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js" integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww==" crossorigin="anonymous"></script>
+	<script src="js/three.min.js"></script>
+	<script src="js/controls/OrbitControls.js"></script>
+
+	<body>
+		<canvas id="canvas"></canvas>
+		<br>
+		<input id="uploadImage" type="file" accept=".jpg, .png"></input>
+		<br>
+		<datalist id="colorxx">
+			<option>#ff0000</option>
+			<option>#00ff00</option>
+			<option>#0000ff</option>
+			<option>#ffffff</option>
+			<option>#000000</option>
+			<option>#ffaa00</option>
+			<option>#00aaff</option>
+			<option>#aaff00</option>
+		</datalist>
+		<br>
+		<input id="backColor" type="color" list="colorxx">background</input>
+		<script>
+			let camera, scene, renderer, plane;
+			init();
+			function init() {
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color(0xaaaaaa);
+
+				camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
+				camera.position.set(0, 200, 0);
+				camera.rotation.set(-Math.PI / 2, 0, 0);
+
+				const grid = new THREE.GridHelper(200, 20, 0x000000, 0x000000);
+				grid.material.opacity = 0.3;
+				grid.material.transparent = true;
+				scene.add( grid );
+
+				// plane
+				var tex = new THREE.TextureLoader().load("dance.png");				
+				var geo = new THREE.PlaneGeometry(60, 60, 32);
+				var mat = new THREE.MeshBasicMaterial( {
+					side: THREE.DoubleSide,
+					map: tex,
+					alphaTest: 0.9
+				} );
+				plane = new THREE.Mesh(geo, mat);
+				plane.rotation.x = -Math.PI / 2;
+				plane.position.x = 0;
+				plane.position.z = 0;
+				plane.position.y = 10;
+				scene.add(plane);
+
+				const canvas = document.getElementById("canvas");
+				renderer = new THREE.WebGLRenderer({canvas});
+				renderer.setSize(500, 500);
+
+				const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+				renderer.setAnimationLoop( function () {
+					renderer.render(scene, camera);
+					controls.update();
+				} );
+
+				/*
+				const half = {w: canvas.width / 2, h: canvas.height / 2};
+				const context = canvas.getContext('2d');
+				document.addEventListener("mousemove", e => {
+					console.log(e);
+					plane.position.x = (e.clientX - half.w) / 5;
+					plane.position.z = (e.clientY - half.h) / 5;
+				})
+				*/
+
+				const image_input = document.getElementById("uploadImage");
+				const color_input = document.getElementById("backColor");
+				color_input.addEventListener("input", (e) => {
+					scene.background = new THREE.Color(e.target.value);
+				});
+
+				image_input.addEventListener("change", function() {
+					var fileList = this.files;
+					for( var i=0,l=fileList.length; l>i; i++ ) {
+						var blobUrl = window.URL.createObjectURL( fileList[i] );
+						// plane
+						new THREE.TextureLoader().load(blobUrl, (tex)=> {
+							var w = tex.image.width;
+							var h = tex.image.height;
+							var geo = new THREE.PlaneGeometry(50, 50 * h / w, 32);
+							var mat = new THREE.MeshBasicMaterial( {
+								side: THREE.DoubleSide,
+								map: tex,
+								alphaTest: 0.9
+							} );
+							plane = new THREE.Mesh(geo, mat);
+							plane.rotation.x = -Math.PI / 2;
+							plane.position.x = _.random(-100, 100);
+							plane.position.z = _.random(-100, 100);
+							plane.position.y = _.random(-10, 10);
+							scene.add(plane);
+
+						});
+					}
+				});
+
+			}
+
+		</script>
+
+	</body>
+</html>
