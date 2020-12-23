@@ -3,12 +3,13 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js" integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww==" crossorigin="anonymous"></script>
 	<script src="js/three.min.js"></script>
 	<script src="js/controls/OrbitControls.js"></script>
-
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js" integrity="sha512-LF8ZB1iTwi4Qvkm4pekHG4a437Y9Af5ZuwbnW4GTbAWQeR2E4KW8WF+xH8b9psevV7wIlDMx1MH9YfPqgKhA/Q==" crossorigin="anonymous"></script>
 	<body>
 		<canvas id="canvas"></canvas>
 		<script>
-			let camera, scene, renderer, plane;
+			let camera, scene, renderer, plane, hoge;
 			let ps = [];
+
 			init();
 			function init() {
 				scene = new THREE.Scene();
@@ -46,15 +47,21 @@
 				renderer = new THREE.WebGLRenderer({canvas});
 				renderer.setSize(500, 500);
 
-				const controls = new THREE.OrbitControls(camera, renderer.domElement);
+				// const controls = new THREE.OrbitControls(camera, renderer.domElement);
+				var param = {kick: 0.01, punch: false, fuga: "1"};
 
 				renderer.setAnimationLoop( function () {
 					renderer.render(scene, camera);
-					controls.update();
+					// controls.update();
 					for (var p of ps) {
-						p.rotation.x += 0.01;
+						p.rotation.x += param.kick;
 					}
 				} );
+
+				const gui = new dat.GUI();
+				gui.add(param, "kick", 0, 1);
+				gui.add(param, "fuga",  ["1", "a"]);
+				gui.add(param, "punch");
 
 			}
 
