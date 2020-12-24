@@ -5,11 +5,11 @@
 	<script src="js/controls/OrbitControls.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js" integrity="sha512-LF8ZB1iTwi4Qvkm4pekHG4a437Y9Af5ZuwbnW4GTbAWQeR2E4KW8WF+xH8b9psevV7wIlDMx1MH9YfPqgKhA/Q==" crossorigin="anonymous"></script>
 	<body>
-		<canvas id="canvas"></canvas>
+		<canvas id="canvas" style="width:500px;height:500px;"></canvas>
 		<div id="view1"></div>
 		<div id="view2"></div>
 		<script>
-			let camera, scene, renderer, plane;
+			let camera, scene, renderer, plane, camera2;
 			let ps = [];
 
 			init();
@@ -20,6 +20,11 @@
 				camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
 				camera.position.set(0, 200, 0);
 				camera.rotation.set(-Math.PI / 2, 0, 0);
+
+				camera2 = new THREE.PerspectiveCamera(45, 1, 1, 2000);
+				camera2.position.set(0, 100, 100);
+				camera2.rotation.set(-Math.PI / 3, 0, 0);
+
 
 				const grid = new THREE.GridHelper(200, 20, 0x000000, 0x000000);
 				grid.material.opacity = 0.3;
@@ -48,24 +53,47 @@
 
 				const canvas = document.getElementById("canvas");
 				renderer = new THREE.WebGLRenderer({canvas});
-				renderer.setScissor(0, 100, 100, 100);
-				renderer.setViewport(0, 100, 100, 100);
+				renderer.setScissorTest(true);
 
 				const v1 = document.getElementById("view1");
 				const v2 = document.getElementById("view2");
 
-
 				const controls = new THREE.OrbitControls(camera, renderer.domElement);
 				var param = {kick: 0.01, punch: false, fuga: "1"};
 
+				renderer.setSize(500, 500);
+
 				renderer.setAnimationLoop( function () {
+					renderer.setScissor(0, 250, 500, 250);
+					renderer.setViewport(0, 250, 500, 250);
+					camera.aspect = 500 / 250.0 ;
+      				camera.updateProjectionMatrix();
 					renderer.render(scene, camera);
+
+					renderer.setScissor(0, 0, 250, 250);
+					renderer.setViewport(0, 0, 250, 250);
+					camera2.aspect = 1;
+					camera2.position.set(0, 100, 100);
+					camera2.rotation.set(-Math.PI / 3, 0, 0);
+      				camera2.updateProjectionMatrix();
+					renderer.render(scene, camera2);
+
+					renderer.setScissor(250, 0, 250, 250);
+					renderer.setViewport(250, 0, 250, 250);
+					camera2.aspect = 1;
+					camera2.position.set(0, 200, 100);
+					camera2.rotation.set(-Math.PI / 3, 0, 0);
+      				camera2.updateProjectionMatrix();
+					renderer.render(scene, camera2);
+
+
 					controls.update();
 					for (var p of ps) {
 						p.rotation.z = Math.sin(param.kick) / 5;
 						param.kick += 0.01;
 					}
 				} );
+
 			}
 
 		</script>
