@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js" integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww==" crossorigin="anonymous"></script>
-	<script src="js/three.min.js"></script>
-	<script src="js/controls/OrbitControls.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js" integrity="sha512-LF8ZB1iTwi4Qvkm4pekHG4a437Y9Af5ZuwbnW4GTbAWQeR2E4KW8WF+xH8b9psevV7wIlDMx1MH9YfPqgKhA/Q==" crossorigin="anonymous"></script>
 	<body>
 		<canvas id="canvas" style="width:500px;height:500px;"></canvas>
-		<script>
+		<script type="module">
+			import * as THREE from './node_modules/three/build/three.module.js';
+			import { OrbitControls } from './node_modules/three-orbitcontrols/OrbitControls.js';
+
 			let camera, scene, renderer, plane, controls, geometry, cube, light;
 			init();
 			function init() {
@@ -36,77 +35,11 @@
 				light.position.set(0, 10, 0);
 				scene.add(light);
 
-				/*
-				const geo = new THREE.Geometry();
-				geo.vertices.push(
-					new THREE.Vector3(0, 0, 0),
-					new THREE.Vector3(10, 0, 10),
-					new THREE.Vector3(0, 0, 10)
-				);
-				geo.faces.push(
-					new THREE.Face3(0, 2, 1)
-				);
-				color = 0xff00aa;
-				mat = new THREE.MeshBasicMaterial({color});
-				tri = new THREE.Mesh(geo, mat);
-				scene.add(tri);
-				*/
-
-				const loader = new THREE.ImageLoader();
-				loader.load("heatmap.png", function(image) {
-					const ctx = document.createElement('canvas').getContext('2d');
-					const {width, height} = image;
-					ctx.canvas.width = width;
-					ctx.canvas.height = height;
-					ctx.drawImage(image, 0, 0);
-					const {data} = ctx.getImageData(0, 0, width, height);
-					geometry = new THREE.Geometry();
-					idx = 0;
-					for (let z = 0; z < height - 1; z++) {
-						for (let x = 0; x < width - 1; x++) {
-							const lt = (z * width + x) * 4;
-							const lb = lt + width * 4;
-							const rt = lt + 4;
-							const rb = lb + 4;
-							const av = (data[lb] + data[rb] + data[rt] + data[rb]) / 4;
-							geometry.vertices.push(
-								new THREE.Vector3(x + 0, data[lb] / 32, z + 1),
-								new THREE.Vector3(x + 1, data[rb] / 32, z + 1),
-								new THREE.Vector3(x + 0, data[lt] / 32, z + 0),
-								new THREE.Vector3(x + 1, data[rt] / 32, z + 0),
-								new THREE.Vector3(x, av / 32, z)
-							);
-							geometry.faces.push(
-								new THREE.Face3(idx + 1, idx + 4, idx + 0),
-								new THREE.Face3(idx + 3, idx + 4, idx + 1),
-								new THREE.Face3(idx + 2, idx + 4, idx + 3),
-								new THREE.Face3(idx + 0, idx + 4, idx + 2)
-							);
-							idx += 5;
-							const TY = z / height;
-							const BY = (z + 1) / height;
-							const LX = x / width;
-							const RX = (x + 1) / width;
-							const CX = (LX + RX) / 2;
-							const CY = (TY + BY) / 2;
-							geometry.faceVertexUvs[0].push(
-								[new THREE.Vector2(LX, BY), new THREE.Vector3(CX, CY), new THREE.Vector3(RX, BY)],
-								[new THREE.Vector3(RX, BY), new THREE.Vector3(CX, CY), new THREE.Vector3(RX, TY)],
-								[new THREE.Vector3(RX, TY), new THREE.Vector3(CX, CY), new THREE.Vector3(LX, TY)],
-								[new THREE.Vector3(LX, TY), new THREE.Vector3(CX, CY), new THREE.Vector3(LX, BY)]
-							);
-						}
-					}
-					// geometry.computeFaceNormals();
-					geometry.translate( width / -2, 0, height / -2);
-					texLoader = new THREE.TextureLoader();
-					tex = texLoader.load("test.png");
-					mat = new THREE.MeshPhongMaterial({color: 'green', map: tex});
-					// color = 0xff00aa;
-					// mat = new THREE.MeshBasicMaterial({color});
-					const mant = new THREE.Mesh(geometry, mat);
-					scene.add(mant);
-				});
+				let mat = new THREE.MeshBasicMaterial({color: 0xaa00aa, side: THREE.DoubleSide});
+				let geo = new THREE.PlaneGeometry(10, 10, 10);
+				let plane = new THREE.Mesh(geo, mat);
+				plane.rotation.x = -Math.PI / 2;
+				scene.add(plane);
 			}
 		</script>
 	</body>
