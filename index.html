@@ -1,79 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js" integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww==" crossorigin="anonymous"></script>
-	<script src="js/three.min.js"></script>
-	<script src="js/OrbitControls.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js" integrity="sha512-LF8ZB1iTwi4Qvkm4pekHG4a437Y9Af5ZuwbnW4GTbAWQeR2E4KW8WF+xH8b9psevV7wIlDMx1MH9YfPqgKhA/Q==" crossorigin="anonymous"></script>
-	<body>
-		<canvas id="canvas" style="width:500px;height:500px;"></canvas>
-		<script>
-			window.onload = function() {
-				let canvas = document.getElementById("canvas");
-				canvas.ondragover = function(e) {
-					e.preventDefault();
-				};
-				canvas.ondrop = function(e) {
-					e.preventDefault();
-					let reader = new FileReader();
-
-					reader.onloadend = (e) => {
-						// e.target.result
-					};
-
-					let items = e.dataTransfer.items;
-					if (!items) return;
-					for (let i in items) {
-						let item = items[i];
-						if (item.kind != "file") continue;
-						
-						let file = item.getAsFile();
-						let url = URL.createObjectURL(file);
-						let img = document.createElement("img");
-						img.src = url;
-						document.body.appendChild(img);
-						reader.readAsDataURL(file);
-					}
-				};
-			};
-
-			let camera, scene, renderer, plane, controls, geometry, cube, light;
-			init();
-			function init() {
-				scene = new THREE.Scene();
-				scene.background = new THREE.Color(0xaaaaaa);
-				camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
-				camera.position.set(0, 100, 0);
-				camera.updateProjectionMatrix()
-				const grid = new THREE.GridHelper(200, 20, 0x000000, 0x000000);
-				grid.material.opacity = 0.3;
-				grid.material.transparent = false;
-				scene.add( grid );
-				const canvas = document.getElementById("canvas");
-				renderer = new THREE.WebGLRenderer({canvas});
-				controls = new THREE.OrbitControls(camera, renderer.domElement);
-				controls.rotateUp(-1);
-				controls.rotateLeft(1);
-				renderer.setSize(500, 500);
-
-				renderer.setAnimationLoop( function (e) {
-					renderer.render(scene, camera);
-					controls.update();
-					light.position.y = 10 + Math.sin(e / 1000.0) * 100;
-				} );
-
-				light = new THREE.DirectionalLight(0xffffff, 1);
-				light.position.set(0, 10, 0);
-				scene.add(light);
-
-				let loader = new THREE.TextureLoader();
-				loader.load('test.png', function(tex) {
-					let mat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide, map: tex});
-					let geo = new THREE.PlaneGeometry(60, 60, 1);
-					let plane = new THREE.Mesh(geo, mat);
-					plane.rotation.x = -Math.PI / 2;
-					scene.add(plane);
-				});
-			}
-		</script>
-	</body>
+<html>
+<body>
+	<script type="module">
+		import hoge from "./m1.mjs"
+		hoge();
+		window.hoge = hoge;
+	</script>
+</body>
 </html>
