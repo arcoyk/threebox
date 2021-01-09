@@ -1,10 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js" integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww==" crossorigin="anonymous"></script>
+	<script src="js/three.min.js"></script>
+	<script src="js/OrbitControls.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js" integrity="sha512-LF8ZB1iTwi4Qvkm4pekHG4a437Y9Af5ZuwbnW4GTbAWQeR2E4KW8WF+xH8b9psevV7wIlDMx1MH9YfPqgKhA/Q==" crossorigin="anonymous"></script>
 	<body>
 		<canvas id="canvas" style="width:500px;height:500px;"></canvas>
-		<script type="module">
-			import * as THREE from './node_modules/three/build/three.module.js';
-			import { OrbitControls } from './node_modules/three-orbitcontrols/OrbitControls.js';
+		<script>
+			window.onload = function() {
+				let canvas = document.getElementById("canvas");
+				canvas.ondragover = function(e) {
+					e.preventDefault();
+				};
+				canvas.ondrop = function(e) {
+					e.preventDefault();
+					let reader = new FileReader();
+
+					reader.onloadend = (e) => {
+						// e.target.result
+					};
+
+					let items = e.dataTransfer.items;
+					if (!items) return;
+					for (let i in items) {
+						let item = items[i];
+						if (item.kind != "file") continue;
+						
+						let file = item.getAsFile();
+						let url = URL.createObjectURL(file);
+						let img = document.createElement("img");
+						img.src = url;
+						document.body.appendChild(img);
+						reader.readAsDataURL(file);
+					}
+				};
+			};
 
 			let camera, scene, renderer, plane, controls, geometry, cube, light;
 			init();
@@ -35,11 +65,14 @@
 				light.position.set(0, 10, 0);
 				scene.add(light);
 
-				let mat = new THREE.MeshBasicMaterial({color: 0xaa00aa, side: THREE.DoubleSide});
-				let geo = new THREE.PlaneGeometry(10, 10, 10);
-				let plane = new THREE.Mesh(geo, mat);
-				plane.rotation.x = -Math.PI / 2;
-				scene.add(plane);
+				let loader = new THREE.TextureLoader();
+				loader.load('test.png', function(tex) {
+					let mat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide, map: tex});
+					let geo = new THREE.PlaneGeometry(60, 60, 1);
+					let plane = new THREE.Mesh(geo, mat);
+					plane.rotation.x = -Math.PI / 2;
+					scene.add(plane);
+				});
 			}
 		</script>
 	</body>
