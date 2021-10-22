@@ -12,9 +12,10 @@
     <script src="js/controls/TrackballControls.js"></script>
     <script src="js/renderers/CSS3DRenderer.js"></script>
     <script>
+      var camera, scene, renderer, elem, obj, ps;
+      var controls;
       window.onload = function() {
-        var camera, scene, renderer, elem, obj;
-        var controls;
+        // 202 - 1300
         // Apr 14. http://learningthreejs.com/blog/2013/04/30/closing-the-gap-between-html-and-webgl/
 
         function init() {
@@ -31,28 +32,46 @@
           renderer.domElement.style.position = 'absolute';
           document.body.appendChild( renderer.domElement );
           // controls
-          controls = new THREE.TrackballControls( camera, renderer.domElement );
-          controls.addEventListener( 'change', renderer );
+          // controls = new THREE.TrackballControls( camera, renderer.domElement );
+          // controls.addEventListener( 'change', renderer );
           // object
-          elem = document.createElement( 'div' );
-          elem.innerText = "hoge";
-          obj = new THREE.CSS3DObject( elem );
-          obj.position.x = 0;
-          obj.position.y = 0;
-          obj.position.z = 0;
-          scene.add(obj);
+          ps = [];
+          let ws = ["Banana", "Yogurt", "Apple", "Ramen", "Lemon", "Steak", "Rice", "Cheese", "Orange"];
+          for (let x = -20; x < 20; x++) {
+            for (let y = -20; y < 20; y++) {
+              elem = document.createElement( 'div' );
+              elem.innerText = ws[(x + 10) % 10];
+              obj = new THREE.CSS3DObject( elem );
+              let p = {x: x * 80 + Math.random() * 40, y: y * 80+ Math.random() * 80, z: Math.random() * 500 - Math.random() * 1000}
+              obj.position.x = p.x;
+              obj.position.y = p.y;
+              obj.position.z = p.z;
+              ps.push(p);
+              scene.add(obj);
+            }
+          }
         }
 
+        let tar = {x: 0, y: 0, z: 200};
+        let r = {x: 10.0, y: 20.0, z: 10.0};
         function animate() {
           requestAnimationFrame( animate );
           renderer.render( scene, camera );
           try {
-            controls.update();
+            // controls.update();
           } catch ( e ) {
             // solve error when you have time
             // b[c].call is not a function : TrackballControls.js ERROR
           }
+          camera.position.x += (tar.x - camera.position.x) / r.x;
+          camera.position.y += (tar.y - camera.position.y) / r.y;
+          camera.position.z += (tar.z - camera.position.z) / r.z;
         }
+
+        setInterval(() => {
+          tar = ps[Math.floor(Math.random() * 1000) % ps.length];
+          tar.z += 400;
+        }, 2000);
 
         init();
         animate();
