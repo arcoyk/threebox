@@ -35,7 +35,8 @@
 			};
 		</script>
 		<script>
-			let camera, scene, renderer, light;
+			let camera, scene, renderer, light, torus;
+			let group;
 			init();
 			function init() {
 				let container = document.createElement( 'div' );
@@ -70,8 +71,11 @@
 					roughness: 0.5
 					// side: THREE.DoubleSide
 				} );
-				let obj = new THREE.Mesh(geo, mat);
-				scene.add(obj);
+				torus = new THREE.Mesh(geo, mat);
+				group = new THREE.Group();
+				group.add(torus);
+				group.add(camera);
+				scene.add(group);
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -85,6 +89,10 @@
 				} );
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
+
+			setInterval(e => {
+				group.rotation.y += 0.1;
+			}, 100);
 			function onWindowResize() {
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
