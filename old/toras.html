@@ -5,6 +5,8 @@
 			width: 200px;
 			height: 200px;
 			position: absolute;
+      background: grey;
+      transform: translate(-50%, -50%);
 			top: 50%;
 			left: 50%;
 		}
@@ -13,14 +15,12 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 	<body>
-		<script>
-			let g = {};
-			g.orien = {a: 0, b: 0, g: 0};
+    <div id="start_demo">
+      start
+    </div>
+    <script>
 			function handleOrientation(event) {
-				g.orien.a = event.alpha;
-				g.orien.b = event.beta;
-				g.orien.c = event.gamma;
-				light.rotation.set(event.alpha, event.beta, event.gamma);
+        group.rotation.set(event.beta / 360 * Math.PI * 2, event.gamma / 360 * Math.PI * 2, event.alpha / 360 * Math.PI * 2);
 			}
 			let start_btn = document.getElementById("start_demo");
 			start_btn.onclick = function(e) {
@@ -48,16 +48,10 @@
 				scene.background = new THREE.Color( 0xa0a0a0 );
 				// let light = new THREE.AmbientLight( 0xaaaaaa, 1.75 );
 				// scene.add( light );
-				let light = new THREE.DirectionalLight(0xffffff);
+				light = new THREE.DirectionalLight(0xffffff);
 				let helper = new THREE.DirectionalLightHelper(light, 5);
 				light.position.set(0, 0, 200);
-				light.rotation.x = Math.PI / 2;
-				let shita = 0;
-				setInterval(e => {
-					shita += Math.PI / 20.0;
-					light.position.x = 50 * Math.cos(shita);
-					light.position.y = 50 * Math.sin(shita);
-				}, 100);
+				light.rotation.x = Math.PI / 2;        
 				scene.add(light);
 				scene.add(helper);
 				let grid = new THREE.GridHelper( 200, 20, 0x000000, 0x000000 );
@@ -89,16 +83,11 @@
 				} );
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
-
-			setInterval(e => {
-				group.rotation.y += 0.1;
-			}, 100);
 			function onWindowResize() {
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 		</script>
-
 	</body>
 </html>
